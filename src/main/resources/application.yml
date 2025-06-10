@@ -1,0 +1,5 @@
+spring:
+  jwt:
+    secret: YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo1NDMyMQdddd==
+    issuer: newpick4u
+    access-token-expiration: 3600000  # 1?? (??: milliseconds)

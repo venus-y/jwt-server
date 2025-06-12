@@ -39,9 +39,9 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
-        .csrf(AbstractHttpConfigurer::disable)  // CSRF 비활성화
+        .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session.sessionCreationPolicy(
-            SessionCreationPolicy.STATELESS))  // Stateless 세션 관리
+            SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             // 공개 API 경로: 누구나 접근 가능
             // Swagger UI 및 API 문서 경로를 공개
@@ -49,20 +49,18 @@ public class SecurityConfig {
                 "/swagger-ui/**",
                 "/swagger-ui.html",
                 "/swagger-resources/**",
-                "/webjars/**",// Swagger 보안 설정
+                "/webjars/**",
                 "/api/users/signup",//
                 "/api/users/signin",
                 "/api/admin/signup",
-                "/api/admin/signin"// 일반적인 정적 파일 위치)
+                "/api/admin/signin"
             )
             .permitAll()
-
-            // 나머지 요청은 인증이 필요
             .anyRequest().authenticated()
         )
         .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
         .addFilterBefore(jwtSecurityFilter,
-            UsernamePasswordAuthenticationFilter.class)  // JWT 필터 추가
+            UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 

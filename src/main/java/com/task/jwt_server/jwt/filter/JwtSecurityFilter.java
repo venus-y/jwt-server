@@ -1,6 +1,6 @@
 package com.task.jwt_server.jwt.filter;
 
-import com.task.jwt_server.application.exception.AuthException;
+import com.task.jwt_server.application.exception.AuthException.NotFoundUser;
 import com.task.jwt_server.application.exception.JwtException;
 import com.task.jwt_server.domain.entity.User;
 import com.task.jwt_server.domain.repository.UserRepository;
@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -60,31 +61,39 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
       throw new JwtException("토큰이 존재하지 않습니다");
     }
 
-    if (token.startsWith(JWT_PREFIX)) {
+    if (validateJwtPrefix(token)) {
       String extractedToken = jwtUtil.extractPrefix(token);
-
-      if (!jwtUtil.validateToken(extractedToken)) {
-        throw new JwtException("유효하지 않은 인증 토큰입니다.");
-      }
+      validateJwtToken(extractedToken);
 
       Claims claims = jwtUtil.extractClaims(extractedToken);
       String username = claims.getSubject();
-
       User user = userRepository.findByUsername(username)
-          .orElseThrow(AuthException.NotFoundUser::new);
-
+          .orElseThrow(NotFoundUser::new);
       UserDetailsImpl userDetails = UserDetailsImpl.fromUser(user);
+      Authentication authentication = createAuthentication(userDetails);
 
-      Authentication authentication = new UsernamePasswordAuthenticationToken(
-          userDetails, null, userDetails.getAuthorities());
-
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-
+      SecurityContext securityContext = SecurityContextHolder.getContext();
+      securityContext.setAuthentication(authentication);
       filterChain.doFilter(request, response);
-
       SecurityContextHolder.clearContext();
     }
 
+  }
+
+  private UsernamePasswordAuthenticationToken createAuthentication(
+      UserDetailsImpl userDetails) {
+    return new UsernamePasswordAuthenticationToken(
+        userDetails, null, userDetails.getAuthorities());
+  }
+
+  private boolean validateJwtPrefix(String token) {
+    return token.startsWith(JWT_PREFIX);
+  }
+
+  private void validateJwtToken(String extractedToken) {
+    if (!jwtUtil.validateToken(extractedToken)) {
+      throw new JwtException("유효하지 않은 인증 토큰입니다.");
+    }
   }
 
   @Override

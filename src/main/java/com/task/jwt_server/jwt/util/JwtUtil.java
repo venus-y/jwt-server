@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class JwtUtil {
+
   private static final String BEARER_PREFIX = "Bearer ";
 
   @Value("${spring.jwt.secret}")
@@ -34,7 +35,6 @@ public class JwtUtil {
     key = Keys.hmacShaKeyFor(bytes);
   }
 
-  // Access Token 생성
   public String createAccessToken(User user) {
     Date now = new Date();
     return Jwts.builder()
@@ -59,18 +59,6 @@ public class JwtUtil {
     return false;
   }
 
-  // Refresh Token 생성
-//  public String createRefreshToken(User user) {
-//    Date now = new Date();
-//    return Jwts.builder()
-//        .setSubject(user.getUserId().toString())
-//        .setIssuedAt(now)
-//        .setExpiration(new Date(now.getTime() + refreshTokenExpirationTime))
-//        .signWith(key, SignatureAlgorithm.HS256)
-//        .compact();
-//  }
-
-  // Claims 추출
   public Claims extractClaims(String token) {
     return Jwts.parser()
         .setSigningKey(key)
@@ -83,9 +71,6 @@ public class JwtUtil {
   public String extractPrefix(String token) {
     return token.substring(7);
   }
-
-
-
 
 
 }
